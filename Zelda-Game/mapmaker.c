@@ -71,3 +71,63 @@ char** getItemData(int* itemCount, int* mapRowSize, int* mapColSize)
        extracting its information to create your own 2D map array in
        the main function. */
 }
+
+
+/*
+    Retrieves the description associated with a specific position on the game map.
+    It extracts map metadata using getItemData(), iterates through the metadata to find
+    a match for the given position (posX, posY), and returns the description found after '|'.
+*/
+char* getObjectDescription(int posX, int posY) {
+    int itemCount, mapRowSize, mapColSize;
+
+    /* get map meta data */ 
+    char** mapMetaData = getItemData(&itemCount, &mapRowSize, &mapColSize);
+
+    for (int i = 0; i < itemCount; i++) {
+        int x, y;
+        char type;
+        char description[MAX_STRING_LENGTH];
+        sscanf(mapMetaData[i], "%d,%d %c %[^\n]", &x, &y, &type, description);
+        char* des = strchr(description, '|');
+        if (des != NULL && x == posX && y == posY) {
+            /* Duplicate the substring after '|' */
+            char* des2 = strdup(des + 1);
+            if (des2 != NULL) {
+                /* Return the duplicated string */
+                freeMapItem(mapMetaData, itemCount);  /* Free mapMetaData before returning */
+                return des2;
+            } else {
+                /* Handle memory allocation failure */
+                printf("Error: Memory allocation failed.\n");
+                freeMapItem(mapMetaData, itemCount);  /* Free mapMetaData before returning */
+                return NULL;
+            }
+        }
+    }
+
+    /* Free mapMetaData if no matching position is found */
+    freeMapItem(mapMetaData, itemCount);
+    /* Return NULL if no matching position is found */
+    return NULL;
+}
+
+
+/*
+    Frees the memory allocated for map metadata. Ensures that each string in the mapMetaData
+    array and the array itself are properly deallocated. Handles the case where mapMetaData is NULL.
+
+*/
+void freeMapItem(char** mapMetaData, int itemCount) {
+    if (mapMetaData != NULL) {
+        for (int i = 0; i < itemCount; i++) {
+            if (mapMetaData[i] != NULL) {
+                free(mapMetaData[i]);
+                mapMetaData[i] = NULL;
+            }
+        }
+        free(mapMetaData);
+    } else {
+        // Optional: Print a message or handle the case where mapMetaData is NULL
+    }
+}
